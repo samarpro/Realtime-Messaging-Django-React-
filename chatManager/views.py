@@ -61,7 +61,7 @@ class ListMessages(generics.ListAPIView):
         _queryset = models.Messages.objects.filter(
             group_name = group_name
         )
-        print(_queryset)
+        print("Ruuning List Messages",_queryset)
         return _queryset
     
 

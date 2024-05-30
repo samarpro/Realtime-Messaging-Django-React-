@@ -18,7 +18,7 @@ class GenericSignUpView(generics.GenericAPIView):
         serializer = UserAuthSerializer(data=req.data)
         if not serializer.is_valid():
             return Response(serializer.errors)
-        token = serializer.create(req=req,**serializer.validated_data)        
+        token = serializer.create(req=req,**serializer.validated_data)         # type: ignore
         return Response({'token':token})
     
 class GenericLoginView(generics.GenericAPIView):
@@ -28,8 +28,19 @@ class GenericLoginView(generics.GenericAPIView):
 
     def post(self, request):
         token = None 
+        request_data = {
+        "method": request.method,
+        "headers": dict(request.headers),
+        "body": request.data,
+        "query_params": request.query_params,
+        "path": request.path
+    }
+    
+        # Print the request as a dictionary
+        print("Request as Dictionary:", request_data)
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
+            print(serializer.validated_data)
             email = serializer.validated_data['email']
             password = serializer.validated_data['password']
             user = authenticate(request,email=email,password=password)

@@ -24,38 +24,37 @@ class ChatConsumer(consumer.AsyncConsumer):
         await self.send({"type": "websocket.accept"})
 
     async def websocket_receive(self, e):
+        """This function only accespts a message. Sender and receiver are automatically figured out."""
         message = json.loads(e["text"])["text"]
-        # msg_obj = await database_sync_to_async(Messages.objects.create)(
-        #     sender=self.scope["sender"],
-        #     receiver=self.scope["receiver"],
-        #     text=message,
-        #     group_name=self.GROUP_NAME,
-        # )
+        msg_obj = await database_sync_to_async(Messages.objects.create)(
+            sender=self.scope["sender"],
+            receiver=self.scope["receiver"],
+            text=message,
+            group_name=self.GROUP_NAME,
+        )
         # group_send only sends message to the group or more specifically, it only sends message to channel of consumer. But the messages also has to be sent to the clients for UI updation or any task. So, When we do group_send we refer to another method that consumer instance has access to for sending it back to client.
-        print(message)
+        resp = {
+            'message':message,
+            'token':self.scope['token'],
+        }
+        print(resp)
         await self.channel_layer.group_send(
             self.GROUP_NAME,
             {
-                "type": "websocket.SendClient",
-                "message": message,
+                "type": "websocket.send_client",
+                "text": resp,
             },
         )
         print("Received Something ")
 
-
-    async def websocket_SendClient(self, event):
-        await self.send(
-            {
-                'type':'websocket.send',
-                "message": event["message"],
-            },
-        )
+    async def websocket_send_client(self, event):
+        print(event["text"])
+        print("Sendig to client")
+        await self.send({"type": "websocket.send", "text": json.dumps(event["text"])})
 
     # database_sync_to_async(msg_obj.save)()
 
     async def websocket_disconnect(self, e):
         print("Disconnected")
-        self.channel_layer.group_discard(self.GROUP_NAME,self.channel_name)
-        # removes channel from channel layer
-        self.channel_layer.flush()
-        await self.close()
+        await self.channel_layer.group_discard(self.GROUP_NAME, self.channel_name)
+        await self.send({"type": "websocket.close"})
