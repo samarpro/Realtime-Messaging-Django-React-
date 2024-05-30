@@ -31,9 +31,7 @@ class ListFriendsSerializer(serializers.ModelSerializer):
         '''The return of this function is group_url'''
         request = self.context['request']
         group_name = self._group_name_generator(request.user.email,friend_obj.email)
-        return reverse('individual-chats',kwargs={
-            'group_name':group_name
-        },request=request)
+        return group_name
 
 class ListMessagesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -57,6 +55,4 @@ class ListGroupsSerializer(serializers.ModelSerializer):
         fields = ['group_name','group_url']
 
     def get_group_url(self,group_obj):
-        return reverse('individual-chats',kwargs = {
-            'group_name':group_obj.group_name
-        },request=self.context['request'])
+        return group_obj.group_name

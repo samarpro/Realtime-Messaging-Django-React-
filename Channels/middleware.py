@@ -13,7 +13,9 @@ class UserAdderMiddleware(BaseMiddleware):
     async def __call__(self,scope,receive,send):
         '''Since middleware runs before rooting the kwargs are not populated in scope'''
         path = scope.get('path').split('/')
+        print("Path please",path)
         mutual_url = path[2]
+        print("Mutual url ",mutual_url.__str__)
         token = path[3]
         sender =  await database_sync_to_async(get_user_model().objects.get)(auth_token=token)
         receiver = await database_sync_to_async(get_user_model().objects.get)(
@@ -22,6 +24,7 @@ class UserAdderMiddleware(BaseMiddleware):
         print(f'Sender: {sender.email}')
         print(f'Receiver: {receiver.email}')
         scope['sender'] = sender
+        scope['token']= token
         scope['receiver'] = receiver
         print(scope)
 
