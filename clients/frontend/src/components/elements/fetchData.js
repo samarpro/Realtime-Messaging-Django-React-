@@ -1,6 +1,6 @@
-
+import { UNSAFE_NavigationContext, useNavigate } from "react-router-dom"
 export function LocalHasToken() {
-    const localToken = localStorage.getItem("token")
+    const localToken = sessionStorage.getItem("token")
     if (localToken)
         return true
     return false
@@ -15,18 +15,18 @@ export async function AuthHandler(
     data,
     root_url
 ) {
-    task = task==="login"?task:""
-    const resp = await fetch(`${root_url}${task}/`, {
+    task = task==="login"?`${task}/`:''
+    const resp = await fetch(`${root_url}${task}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data), // what goes from here is string "{ }"
     });
     const respData = await resp.json();
     if (respData['token']){
-        localStorage.setItem('token',respData['token'])
-        console.log("Redirection is required.")
+        sessionStorage.setItem('token',respData['token'])
+
     }
     console.log(respData)
     return respData["token"];

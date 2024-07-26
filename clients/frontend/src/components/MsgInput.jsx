@@ -8,7 +8,8 @@ function MsgInput(props) {
   const wsRef = useRef(null);
   const msgRef = useRef(null);
   const { root_ws_url } = useEndpoints();
-  const token = localStorage.getItem("token");
+  let token = sessionStorage.getItem("token");
+  if (!token) token = localStorage.getItem('token')
 
   useEffect(() => {
     console.log("Running UseEffect...");
@@ -25,10 +26,10 @@ function MsgInput(props) {
     wsConn.onmessage = (event) => {
       const respData = JSON.parse(event.data);
       console.log("Data received:", respData);
-      setListOfMessages({
+      setListOfMessages((prev)=>[...prev,{
         token: respData["token"],
-        message: respData["message"],
-      });
+        text: respData["text"],
+      }]);
     };
 
     wsConn.onerror = (error) => {

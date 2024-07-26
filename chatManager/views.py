@@ -9,7 +9,6 @@ from itertools import chain
 
 
 # Create your views here.
-
 class _ListGroups():
     serializer_class = serializers.ListGroupsSerializer
     def get(self,req):
@@ -62,6 +61,8 @@ class ListMessages(generics.ListAPIView):
             group_name = group_name
         )
         print("Ruuning List Messages",_queryset)
+        # return of this function gets passed through serailizer.
+        #serializer iterates over everything and only allows those field that are in fields arr
         return _queryset
     
 
@@ -72,7 +73,6 @@ class CreateGroup(generics.CreateAPIView):
 
 
 class UpdateGroup(generics.UpdateAPIView):
+    queryset = models.UserCreatedGroups.objects.all()
     serializer_class = serializers.UpdateGroupSerializer
     permission_classes = [IsAuthenticated] # Isowner
-
-    

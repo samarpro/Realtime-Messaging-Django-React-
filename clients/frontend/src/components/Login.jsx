@@ -1,75 +1,163 @@
 import React, { useEffect, useState } from "react";
-import { Input } from "../components";
+import { Input, InputButton } from "../components";
 import useEndpoints from "../context/endpoint";
-import { useNavigate } from "react-router-dom";
-import {AuthHandler, LocalHasToken} from "./elements/fetchData";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthHandler, LocalHasToken } from "./elements/fetchData";
+import { auth, Facebookprovider, GoogleProvider } from "../firebase/firebase";
+import {
+    signInWithPopup,
+    FacebookAuthProvider,
+    GoogleAuthProvider,
+} from "firebase/auth";
 function Login() {
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [bio, setBio] = useState("");
-    const [password, setPassword] = useState("");
-    const { root_url, root_user } = useEndpoints();
-    const navigate = useNavigate() // provides a function through which we can easily change URL
-    useEffect(()=>{
-        if (LocalHasToken())
-            navigate('/Dashboard')
-    },[])
+    const [loginDetails, setLoginDetails] = useState({
+        username: "",
+        email: "",
+        password: "",
+    });
+    // const [bio, setBio] = useState("");
+    const { root_url } = useEndpoints();
+    const navigate = useNavigate(); // provides a function through which we can easily change URL
+    useEffect(() => {
+        if (LocalHasToken()) navigate("/Dashboard");
+    }, []);
+
+    const OAuthHandler = (index) => {
+        console.log('Running', index)
+        const ProvidersList = [FacebookAuthProvider, GoogleAuthProvider];
+        console.log(ProvidersList)
+        signInWithPopup(auth, [Facebookprovider, GoogleProvider][index])
+            .then(async (result) => {
+                // The signed-in user info.
+                const user = result.user;
+                // This gives you a Facebook Access Token. You can use it to access the Facebook API.
+                const credential = ProvidersList[index].credentialFromResult(result);
+                const accessToken = credential.accessToken;
+                const token = await  AuthHandler(
+                    'login',
+                    {
+                        username: user.displayName,
+                        email: user.email,
+                        image_url: user.photoURL,
+                    },
+                    root_url
+                );
+                console.log(result);
+                if (token) navigate('/Dashboard')
+            })
+            .catch((error) => {
+                // Handle Errors here.
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                // The email of the user's account used.
+                console.log(error);
+                const email = error.customData.email;
+                // The AuthCredential type that was used.
+                const credential = ProvidersList[index].credentialFromError(error);
+            });
+    };
 
     return (
-        <div className="flex w-screen h-screen">
-            <div className="left-container text-white w-1/2">
-                <h1>SamChats</h1>
+
+        <div
+            id="loginForm"
+            className="flex max-w-screen h-screen flex-wrap justify-center items-center"
+        >
+            <h1 className="text-4xl font-bold bg-gradient-to-r to-neutral-100 via-teal-300 from-blue-700 bg-clip-text text-transparent text-center">
+                Let's dive again !
+            </h1>
+            <div className="left-container text-white w-1/2 bg-blue-700 bg bg-opacity-0 min-w-72">
                 <form
-                    className="form flex flex-col"
-                    onSubmit={(e) => {
-                        e.preventDefault()
-                        console.log("Login/request sent")
-                        // This is the function responsible for authentication2
-                        AuthHandler("login",{email,password},root_url)
-                        navigate('/Dashboard')
-                    }
-                }
+                    className="form flex flex-col text-center"
+                    onSubmit={async (e) => {
+                        e.preventDefault();
+                        console.log("Login/request sent");
+                        // This is the function responsible for authentication+
+                        let token = await AuthHandler(
+                            "login",
+                            { ...loginDetails },
+                            root_url
+                        );
+                        if (typeof token === "string") {
+                            navigate("/Dashboard")
+                        }
+                        else console.log("error to be raised.");
+                    }}
                 >
-                    <div className="profile-selector w-32 h-32 bg-slate-500 rounded-full">
-                        dgfhsgfh
-                    </div>
+                    <Input
+                        type="text"
+                        value={loginDetails.username}
+                        placeholder="Username"
+                        onChange={(e) =>
+                            setLoginDetails((prev) => ({
+                                ...prev,
+                                username: e.target.value,
+                            }))
+                        }
+                        required
+                    />
                     <Input
                         type="email"
                         placeholder="Email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={loginDetails.email}
+                        onChange={(e) =>
+                            setLoginDetails((prev) => ({ ...prev, email: e.target.value }))
+                        }
                         required={true}
                     />
-                    <Input
+                    {/* <Input
                         type="text"
-                        value={username}
-                        placeholder="Username"
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                    <Input
-                        type="text"
-                        value={bio}
+                        value={loginDetails.bio}
                         placeholder="Bio"
-                        onChange={(e) => setBio(e.target.value)}
+                        onChange={(e) => setLoginDetails((prev)=>({...prev,email:e.target.value})))}
                         required
-                    />
+                    /> */}
                     <Input
                         type="password"
                         placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        value={loginDetails.password}
+                        onChange={(e) =>
+                            setLoginDetails((prev) => ({
+                                ...prev,
+                                password: e.target.value,
+                            }))
+                        }
                         required
                     />
-                    <Input type="submit" value="Submit" className="w-max p-4 bg-white" />
+                    <InputButton type="submit" text="Log in" />
+                    <InputButton
+                        type="button"
+                        value={0}
+                        text="Log in with Facebook"
+                        onClick={(e) => OAuthHandler(e.target.value)}
+                    />
+
+                    <InputButton
+                        type="button"
+                        value={1}
+                        onClick={(e) => OAuthHandler(e.target.value)}
+                        text="Log in with Google"
+                        className="my-5 p-2 bg-white text-black font-bold border rounded-md"
+                    />
+                    <div>
+
+                        <input type="checkbox" name="rememberMe" id="rememberMe" /><label htmlFor="rememberMe">
+
+                            Remember me</label>
+                    </div>
                 </form>
             </div>
-            <div className="right-container text-white w-1/2">
-                <div className="profile-pic"></div>
-                <h1>Email: {email}</h1>
-                <h1>Username: {username}</h1>
-                <h1>Bio: {bio}</h1>
-                <h2>Password: {password}</h2>
+            <div className="right-container text-white w-1/2 bg-red-600 bg-opacity-0 min-w-72">
+                <h1 className="text-3xl font-bold text-center">
+                    Does it looks like this?
+                </h1>
+                <div className="profile-pic min-w-[100px] min-h-[100px] max-w-[101px] m-auto rounded-full bg-red-200"></div>
+                <p className="text-center font-serif text-lg text-gray-400 ">
+                    {loginDetails.username ? `@${loginDetails.username}` : "@username"}
+                </p>
+                <p className="text-center font-serif text-lg text-gray-400">
+                    {loginDetails.email ? `${loginDetails.email}` : "your@sam.com"}
+                </p>
             </div>
         </div>
     );
