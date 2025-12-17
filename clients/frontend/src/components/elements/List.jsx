@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo} from "react";
 import useEndpoints from "../../context/endpoint";
 import { Link, useNavigate } from "react-router-dom";
 function ElementsBox(props) {
   return (
-    <li className="list-none">
-      <Link className="bg-slate-400 border p-3 block" to={props.url}>
-        {props.username === undefined ? props.group_name : props.username}
+    <li className="list-none" onClick={props.onClick}>
+      <Link className=" uppercase " to={props.url}>
+        <p>{props.username === undefined ? props.group_name : props.username}</p>
       </Link>
     </li>
   );
 }
 
-function List() {
+function List({setTriggerNav}) {
   const { root_url } = useEndpoints();
   const [data, setData] = useState([]);
   const local_token = sessionStorage.getItem("token");
@@ -34,10 +34,11 @@ function List() {
     useEffect(() => {
       GetList();
     }, []);
+    console.log("ListOfFriends")
     return (
       <>
-        <div className="list">
-          <h1>Friends</h1>
+        <div className="list my-10">
+          <h1 className="text-2xl text-center">Your Doouts</h1>
           {data.length == 0 ? <h1>No friends</h1> : (data.map((item, index) => {
             return (
               <ElementsBox
@@ -45,12 +46,13 @@ function List() {
                 username={item.username}
                 group_name={item.group_name}
                 url={item.group_url}
+                onClick={()=>setTriggerNav(prev=>!prev)}
               />
             );
           }))}
         </div>
-        <Link className='bg-slate-700 p-4 block' to='../createGroup' >Create Group</Link>
-        <button onClick={() => {
+        <Link className='bg-slate-700 p-2 m-1 rounded-md' to='../createGroup' >Create Group</Link>
+        <button className='bg-slate-700 p-2 m-1 rounded-md block' onClick={() => {
           console.log("clicked")
           sessionStorage.clear()
           navigate('../')
@@ -68,5 +70,5 @@ function List() {
 }
 
 
-export default List;
+export default memo(List);
 export { ElementsBox };

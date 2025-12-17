@@ -13,7 +13,7 @@ from rest_framework.reverse import reverse
 
 class ListFriendsSerializer(serializers.ModelSerializer):
     """
-    Iterates over every uer object in queryset and serializes it based on the
+    Iterates over every user object in queryset and serializes it based on the
     fields defined
     """
 

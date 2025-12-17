@@ -13,7 +13,7 @@ class CustomAuthBackend(backends.BaseBackend):
         CustomUserModel = get_user_model()
         try:
             user = CustomUserModel.objects.get(email=email)
-            if kwargs['OAuth']:
+            if 'OAuth' in kwargs.keys():
                 return user
             # user.set_password("0123456789!")
             if user.check_password(password):

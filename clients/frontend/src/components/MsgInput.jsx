@@ -59,11 +59,11 @@ function MsgInput(props) {
     wsRef.current.send(jsonText);
   }
   return (
-    <div className="flex justify-center items-center">
+    <div className="w-full flex justify-center items-center">
       <input
         type="text"
         name="messageBox"
-        className="w-3/4 p-2 m-4 rounded"
+        className="p-2 w-2/3 m-3 rounded"
         ref={msgRef}
       />
       <button onClick={SendMsg}>Send</button>
