@@ -1,2 +1,6 @@
 ./venv
 .vscode
+./MessagingApplication
+__pycache__/
+*.pyc
+.env
